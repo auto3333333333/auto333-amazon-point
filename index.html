@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>アイテム購入</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body { margin: 0; padding: 0; box-sizing: border-box; }
+
+        .l-wrap-regular {
+            max-width: 1200px;
+            width: 95%;
+            margin: 0 auto;
+        }
+
+        .simulator-layout { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: flex-start; 
+            gap: 20px; 
+            width: 100%;
+        }
+        
+        /* 左側：絞り込みカラム */
+        .side-filter-column { 
+            flex: 0 1 220px;
+            min-width: 180px;
+            background: #fff; 
+            border: 1px solid #ddd; 
+            border-radius: 4px; 
+            padding: 15px; 
+            box-sizing: border-box; 
+        }
+        .filter-section { margin-bottom: 20px; text-align: left; }
+        .filter-section:last-child { margin-bottom: 0; }
+        .filter-title { font-size: 13px; font-weight: bold; color: #333; border-bottom: 1px solid #001789; padding-bottom: 4px; margin-bottom: 10px; }
+        .filter-label { display: flex; align-items: center; font-size: 12px; color: #444; margin-bottom: 6px; cursor: pointer; }
+        .filter-label input { margin-right: 6px; }
+
+        /* 中央：メイン製品一覧 */
+        .main-list-column { 
+            flex: 1 1 500px; 
+            background: #fff; 
+            border: 1px solid #ddd; 
+            border-radius: 4px; 
+            padding: 20px; 
+            box-sizing: border-box; 
+        }
+        
+        /* 右側：カート */
+        .side-cart-column { 
+            flex: 0 1 320px;
+            min-width: 260px;
+        }
+        
+        .product-item-row { display: flex; padding: 20px 0; border-bottom: 1px dashed #ccc; }
+        .product-item-row:last-child { border-bottom: none; }
+        .item-image-box { width: 120px; height: 120px; margin-right: 15px; flex-shrink: 0; cursor: pointer; }
+        .product-photo { width: 100%; height: 100%; object-fit: contain; border: 1px solid #e0e0e0; border-radius: 4px; }
+        .item-info-box { flex-grow: 1; margin-right: 15px; }
+        .item-rank { font-size: 11px; color: #ff6600; font-weight: bold; margin-bottom: 4px; }
+        .item-title-text { font-size: 14px; font-weight: bold; color: #001789; margin-bottom: 6px; cursor: pointer; text-decoration: none; display: block; text-align: left; }
+        .item-title-text:hover { text-decoration: underline; }
+        .item-description { font-size: 11px; color: #555; margin-bottom: 8px; line-height: 1.5; text-align: left; }
+        .item-spec-tags { display: flex; gap: 4px; flex-wrap: wrap; }
+        .spec-tag { background: #f0f4f8; border: 1px solid #bcd; color: #456; padding: 1px 5px; font-size: 11px; border-radius: 2px; }
+        
+        .item-action-box { width: 130px; text-align: right; display: flex; flex-direction: column; justify-content: space-between; flex-shrink: 0; }
+        .price-value { font-size: 16px; font-weight: bold; color: #cc0000; display: block; margin-bottom: 8px; }
+        
+        .btn-action { display: block; width: 100%; text-align: center; padding: 8px 0; font-size: 12px; font-weight: bold; border: none; border-radius: 4px; cursor: pointer; transition: background-color 0.2s, opacity 0.2s; box-sizing: border-box; }
+        .btn-blue { background: #001789; color: #fff; }
+        .btn-blue:hover { background: #000c47; }
+        .btn-orange { background: #f60; color: #fff; }
+        .btn-orange:hover { background: #df5800; }
+        
+        .cart-container { border: 1px solid #ddd; border-top: 3px solid #f60; background: #fff; padding: 15px; border-radius: 0 0 4px 4px; position: sticky; top: 10px; box-sizing: border-box; }
+        .cart-header { font-size: 14px; font-weight: bold; color: #333; border-bottom: 1px solid #eee; padding-bottom: 8px; margin-bottom: 12px; display: flex; justify-content: space-between; }
+        .cart-items-list { max-height: 380px; overflow-y: auto; margin-bottom: 15px; }
+        .cart-row { display: flex; flex-direction: column; border-bottom: 1px dotted #ccc; padding: 10px 0; }
+        .cart-row-top { font-size: 12px; font-weight: bold; color: #333; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-bottom: 6px; text-align: left; }
+        .cart-row-bottom { display: flex; justify-content: space-between; align-items: center; }
+        .qty-controller { display: flex; align-items: center; background: #f5f5f5; border: 1px solid #ccc; border-radius: 3px; overflow: hidden; }
+        .btn-qty { background: #fff; border: none; width: 24px; height: 22px; font-size: 14px; font-weight: bold; color: #333; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .qty-number { width: 28px; text-align: center; font-size: 12px; font-weight: bold; color: #ff6600; }
+
+        .btn-action:disabled {
+            background-color: #cccccc !important;
+            color: #888888 !important;
+            cursor: not-allowed !important;
+            opacity: 0.7;
+            box-shadow: none !important;
+        }
+
+        /* 通知を表示する全体のコンテナ（画面右上に固定） */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px; /* 通知ごとの隙間 */
+            pointer-events: none;
+        }
+
+        /* 個々の通知（トースト）のスタイル（修正版） */
+        .toast-notification {
+            background: #333333;
+            color: #ffffff;
+            padding: 12px 24px;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            opacity: 0;
+            transform: translateX(50px);
+            transition: opacity 0.3s, transform 0.3s;
+            
+            /* 【修正箇所】省略をなくし、自動折り返しを許可する設定 */
+            width: 280px;               /* 通知ボックスの横幅を固定 */
+            white-space: normal;        /* 文字が端にきたら自動で改行する */
+            word-break: break-all;      /* 英語や長い型番でも枠外に飛び出さずに折る */
+            line-height: 1.4;           /* 折り返したときに見やすいよう行間を調整 */
+        }
+
+        /* 表示されたときの状態 */
+        .toast-notification.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        /* 広告 */
+        /* 広告エリア全体の枠 */
+        .ad-banner-wrapper {
+            margin-bottom: 20px;
+            background: linear-gradient(90deg, #fffcf5 0%, #fff8eb 100%); /* 高級感のある薄いゴールド/ベージュ系 */
+            border: 1px solid #f3d078; /* Amazonのセール時のようなゴールド枠 */
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        /* リンク全体の挙動 */
+        .ad-banner-link {
+            display: block;
+            text-decoration: none;
+            color: #333;
+            transition: background 0.2s;
+        }
+
+        .ad-banner-link:hover {
+            background: linear-gradient(90deg, #fff9eb 0%, #fff2d6 100%);
+        }
+
+        /* 広告の中身のレイアウト */
+        .ad-banner-content {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            gap: 15px;
+            position: relative;
+        }
+
+        /* 「PR」や「広告」の小さなバッジ */
+        .ad-badge {
+            font-size: 10px;
+            font-weight: bold;
+            color: #767676;
+            border: 1px solid #a6a6a6;
+            padding: 1px 4px;
+            border-radius: 3px;
+            background: #fff;
+            text-transform: uppercase;
+        }
+
+        /* テキスト部分の並び（縦並び） */
+        .ad-text-group {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            text-align: left;
+        }
+
+        /* 広告のキャッチコピー */
+        .ad-catch {
+            font-size: 11px;
+            font-weight: bold;
+            color: #e47911; /* アマゾンオレンジ風 */
+            margin-bottom: 2px;
+        }
+
+        /* 広告のメインタイトル */
+        .ad-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: #001789; /* サイト全体のテーマカラーに合わせた紺色 */
+            line-height: 1.4;
+        }
+
+        /* 右側の「詳細を見る」ボタン風デザイン */
+        .ad-btn {
+            font-size: 12px;
+            font-weight: bold;
+            color: #fff;
+            background: #e47911;
+            padding: 6px 12px;
+            border-radius: 4px;
+            white-space: nowrap;
+            box-shadow: 0 2px 4px rgba(228, 121, 17, 0.2);
+        }
+
+        /* スマートフォンなどの画面が狭い時のレスポンシブ対応 */
+        @media (max-width: 600px) {
+            .ad-banner-content {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+            .ad-btn {
+                width: 100%;
+                text-align: center;
+                box-sizing: border-box;
+            }
+            .ad-badge {
+                position: absolute;
+                top: 12px;
+                right: 16px;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .simulator-layout { flex-direction: column; align-items: stretch; }
+            .side-filter-column, .main-list-column, .side-cart-column { width: 100%; flex: none; }
+            .cart-container { position: static; }
+        }
+    </style>
+</head>
+<body class="l-color-1">
+
+    <div class="l-wrap-regular">
+        <header class="l-h">
+            <div class="l-h_in"><div class="l-h_pageTtl">購入</div></div>
+        </header>
+
+        <main class="u-pTop20 u-pBtm30 u-pLeft10 u-pRight10">
+            <div class="simulator-layout">
+                
+                <div class="side-filter-column" id="side-filter-column"></div>
+
+                <div class="main-list-column">
+                    <h1 class="u-fw-b u-mBtm20" style="font-size: 15px; color: #111; border-bottom: 2px solid #001789; padding-bottom: 6px; text-align: left;">
+                        注目製品ランキング（条件絞り込み対応）
+                    </h1>
+                    <div id="product-list-target"></div>
+                </div>
+
+                <div class="side-cart-column">
+                    <div class="cart-container">
+                        <div class="cart-header">
+                            <span>🛒 カート</span>
+                            <span id="total-count-badge" style="color: #f60; font-weight: bold;">0点</span>
+                        </div>
+                        <div class="cart-items-list" id="cart-items-target"></div>
+                        <div style="display: flex; justify-content: space-between; font-weight: bold; border-top: 2px solid #ddd; padding-top: 10px; margin-bottom: 15px;">
+                            <span>合計金額:</span>
+                            <span id="total-price-display" style="color: #cc0000; font-size: 16px;">￥0</span>
+                        </div>
+                        <button class="btn-action btn-orange" id="btn-submit-order" onclick="location.href='checkout.html'" disabled>注文を確定する</button>
+                    </div>
+                    <div class="l-main-column">
+                        
+                        <div class="ad-banner-wrapper">
+                            <a href="purchase.html" class="ad-banner-link">
+                                <div class="ad-banner-content">
+                                    <span class="ad-badge">PR</span>
+                                    <div class="ad-text-group">
+                                        <span class="ad-catch">＼ 最新ガジェット祭り開催中！ ／</span>
+                                        <span class="ad-title">話題の新型スマホから爆速PCパーツまで、最大20%ポイント還元！</span>
+                                    </div>
+                                    <span class="ad-btn">詳細を見る ➔</span>
+                                </div>
+                            </a>
+                        </div>
+                        <div id="product-list-target">
+                            </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script src="category.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

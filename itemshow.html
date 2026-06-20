@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>製品詳細</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .detail-layout { display: flex; justify-content: space-between; align-items: flex-start; margin-top: 20px; }
+        .detail-main-box { width: 650px; background: #fff; border: 1px solid #ddd; padding: 25px; border-radius: 4px; }
+        .side-cart-column { width: 355px; }
+        
+        .detail-header { border-bottom: 2px solid #001789; padding-bottom: 10px; margin-bottom: 20px; }
+        .detail-title { font-size: 20px; font-weight: bold; color: #111; line-height: 1.4; }
+        .detail-rank { font-size: 12px; color: #ff6600; font-weight: bold; margin-top: 5px; }
+
+        .detail-content { display: flex; gap: 25px; margin-bottom: 25px; }
+        .detail-image-box { width: 240px; height: 240px; flex-shrink: 0; }
+        .detail-photo { width: 100%; height: 100%; object-fit: contain; border: 1px solid #e0e0e0; border-radius: 4px; }
+        .detail-info { flex-grow: 1; }
+        .detail-price-box { background: #fff5f0; border: 1px solid #ffccaa; padding: 15px; border-radius: 4px; margin-bottom: 15px; }
+        .detail-price-label { font-size: 12px; color: #555; }
+        .detail-price-value { font-size: 24px; font-weight: bold; color: #cc0000; }
+        .detail-desc { font-size: 13px; color: #333; line-height: 1.6; margin-bottom: 15px; }
+
+        .spec-list-title { font-size: 14px; font-weight: bold; color: #001789; border-bottom: 1px solid #ddd; padding-bottom: 4px; margin-bottom: 10px; }
+        .spec-table { width: 100%; font-size: 12px; border-collapse: collapse; }
+        .spec-table th { background: #f5f5f5; width: 30%; padding: 8px; border: 1px solid #ddd; font-weight: bold; }
+        .spec-table td { padding: 8px; border: 1px solid #ddd; }
+
+        .cart-container { border: 1px solid #ddd; border-top: 3px solid #f60; background: #fff; padding: 15px; border-radius: 0 0 4px 4px; position: sticky; top: 10px; }
+        .cart-header { font-size: 14px; font-weight: bold; color: #333; border-bottom: 1px solid #eee; padding-bottom: 8px; margin-bottom: 12px; display: flex; justify-content: space-between; }
+        .cart-items-list { max-height: 380px; overflow-y: auto; margin-bottom: 15px; }
+        .cart-row { display: flex; flex-direction: column; border-bottom: 1px dotted #ccc; padding: 10px 0; }
+        .cart-row-top { font-size: 12px; font-weight: bold; color: #333; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-bottom: 6px; }
+        .cart-row-bottom { display: flex; justify-content: space-between; align-items: center; }
+        .qty-controller { display: flex; align-items: center; background: #f5f5f5; border: 1px solid #ccc; border-radius: 3px; overflow: hidden; }
+        .btn-qty { background: #fff; border: none; width: 24px; height: 22px; font-size: 14px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .qty-number { width: 28px; text-align: center; font-size: 12px; font-weight: bold; color: #ff6600; }
+        .btn-action { display: block; width: 100%; text-align: center; padding: 10px 0; font-size: 13px; font-weight: bold; border: none; border-radius: 4px; cursor: pointer; }
+        .btn-blue { background: #001789; color: #fff; }
+        .btn-orange { background: #f60; color: #fff; }
+        .btn-gray { background: #aaa; color: #fff; margin-top: 15px; }
+        /* 通知を表示する全体のコンテナ（画面右上に固定） */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px; /* 通知ごとの隙間 */
+            pointer-events: none;
+        }
+
+        /* 個々の通知（トースト）のスタイル（修正版） */
+        .toast-notification {
+            background: #333333;
+            color: #ffffff;
+            padding: 12px 24px;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            opacity: 0;
+            transform: translateX(50px);
+            transition: opacity 0.3s, transform 0.3s;
+            
+            /* 【修正箇所】省略をなくし、自動折り返しを許可する設定 */
+            width: 280px;               /* 通知ボックスの横幅を固定 */
+            white-space: normal;        /* 文字が端にきたら自動で改行する */
+            word-break: break-all;      /* 英語や長い型番でも枠外に飛び出さずに折る */
+            line-height: 1.4;           /* 折り返したときに見やすいよう行間を調整 */
+        }
+
+        /* 表示されたときの状態 */
+        .toast-notification.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    </style>
+</head>
+<body class="l-color-1">
+
+    <div class="l-wrap-regular">
+        <header class="l-h">
+            <div class="l-h_in">
+                <div class="l-h_in_cell-location">
+                    <div class="l-h_pageTtl">価格.com風 実在アイテム購入シミュレーター</div>
+                </div>
+            </div>
+            <div class="l-h_in-2">
+                <div class="u-pTop10 u-pBtm10 u-pLeft10">
+                    <nav class="l-h_bread">
+                        <span class="l-h_bread_drops"><a href="index.html" class="l-h_bread_drops_link">トップ</a></span>
+                        <span class="l-h_bread_drops l-h_bread_current" id="bread-product-name">製品詳細</span>
+                    </nav>
+                </div>
+            </div>
+        </header>
+
+        <main class="u-pTop20 u-pBtm30 u-pLeft10 u-pRight10">
+            <div class="detail-layout">
+                
+                <div class="detail-main-box" id="detail-main-target">
+                    <div style="text-align: center; padding: 40px 0; color: #666;">読み込み中...</div>
+                </div>
+
+                <div class="side-cart-column">
+                    <div class="cart-container">
+                        <div class="cart-header">
+                            <span>🛒 カート</span>
+                            <span id="total-count-badge" class="c-num" style="color: #f60;">0点</span>
+                        </div>
+                        <div class="cart-items-list" id="cart-items-target"></div>
+                        <div style="display: flex; justify-content: space-between; font-weight: bold; border-top: 2px solid #ddd; padding-top: 10px; margin-bottom: 15px;">
+                            <span>合計金額:</span>
+                            <span id="total-price-display" style="color: #cc0000; font-size: 16px;">￥0</span>
+                        </div>
+                        <button class="btn-action btn-orange" onclick="location.href='checkout.html'">注文を確定する</button>
+                        <button class="btn-action btn-gray" onclick="location.href='index.html'">← 商品一覧に戻る</button>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const productId = urlParams.get('id');
+
+        let currentProduct = null;
+        let cartMap = JSON.parse(sessionStorage.getItem('sim_cart_data') || '{}');
+
+        async function loadProductDetail() {
+            try {
+                const response = await fetch('item.json');
+                const products = await response.json();
+                currentProduct = products.find(p => p.id === productId);
+                
+                if (!currentProduct) {
+                    document.getElementById('detail-main-target').innerHTML = '<h3>商品が見つかりません。</h3>';
+                    return;
+                }
+
+                document.title = `${currentProduct.name} - 製品詳細`;
+                document.getElementById('bread-product-name').textContent = currentProduct.name;
+                
+                renderDetail();
+                updateCartView();
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function renderDetail() {
+            const target = document.getElementById('detail-main-target');
+            
+            // 1. specs（配列）から詳細仕様テーブルの行を生成
+            const specsHTML = currentProduct.specs && currentProduct.specs.length > 0
+                ? currentProduct.specs.map((spec, index) => `
+                    <tr>
+                        <th>特徴・仕様 ${index + 1}</th>
+                        <td>${spec}</td>
+                    </tr>
+                  `).join('')
+                : '<tr><th>仕様</th><td>詳細情報の登録はありません。</td></tr>';
+
+            // 2. rankの項目が存在し、かつ 0 や空文字でない場合のみ表示用のHTMLを作成
+            const hasRank = (currentProduct.rank !== undefined && currentProduct.rank !== null && currentProduct.rank !== '');
+            const rankHTML = hasRank 
+                ? `注目ランキング ${currentProduct.rank}位 | ` 
+                : ''; // なければテキスト自体を空にする
+
+            // 3. 画面全体をレンダリング（onerror部分で多拡張子対応を実装、初期値は.avif）
+            target.innerHTML = `
+                <div class="detail-header">
+                    <h1 class="detail-title">${currentProduct.name}</h1>
+                    <div class="detail-rank">${rankHTML}カテゴリ: ${currentProduct.category}</div>
+                </div>
+                <div class="detail-content">
+                    <div class="detail-image-box">
+                        <img src="assets/image/${currentProduct.id}.avif" 
+                             class="detail-photo" 
+                             alt="${currentProduct.name}" 
+                             onerror="
+                                if(!this.dataset.triedWebp){
+                                    this.dataset.triedWebp=true; 
+                                    this.src='assets/image/${currentProduct.id}.webp';
+                                }else if(!this.dataset.triedJpg){
+                                    this.dataset.triedJpg=true; 
+                                    this.src='assets/image/${currentProduct.id}.jpg';
+                                }else if(!this.dataset.triedPng){
+                                    this.dataset.triedPng=true; 
+                                    this.src='assets/image/${currentProduct.id}.png';
+                                }else{
+                                    this.onerror=null; 
+                                    this.src='https://placehold.jp/240x240.png?text=NO+IMAGE';
+                                }
+                             ">
+                    </div>
+                    <div class="detail-info">
+                        <div class="detail-price-box">
+                            <span class="detail-price-label">最安価格(税込)</span><br>
+                            <span class="detail-price-value">￥${currentProduct.price.toLocaleString()}</span>
+                        </div>
+                        <p class="detail-desc">${currentProduct.description}</p>
+                        <button class="btn-action btn-blue" style="width: 200px;" onclick="addCurrentToCart()">この商品をカートに入れる</button>
+                    </div>
+                </div>
+                <div class="spec-list-title">詳細スペック・仕様</div>
+                <table class="spec-table">
+                    <tbody>${specsHTML}</tbody>
+                </table>
+            `;
+        }
+
+        function updateCartView() {
+            const cartItemsTarget = document.getElementById('cart-items-target');
+            cartItemsTarget.innerHTML = '';
+            let totalCount = 0;
+            let totalAmount = 0;
+            const keys = Object.keys(cartMap);
+
+            if (keys.length === 0) {
+                cartItemsTarget.innerHTML = '<div style="color:#999; text-align:center; padding:20px 0; font-size:12px;">カートは空です。</div>';
+                document.getElementById('total-count-badge').textContent = "0点";
+                document.getElementById('total-price-display').textContent = "￥0";
+                return;
+            }
+
+            keys.forEach(id => {
+                const item = cartMap[id];
+                totalCount += item.quantity;
+                const subtotal = item.product.price * item.quantity;
+                totalAmount += subtotal;
+
+                const row = document.createElement('div');
+                row.className = 'cart-row';
+                row.innerHTML = `
+                    <div class="cart-row-top">${item.product.name}</div>
+                    <div class="cart-row-bottom">
+                        <div class="qty-controller">
+                            <button class="btn-qty" onclick="changeQty('${id}', -1)">−</button>
+                            <div class="qty-number">${item.quantity}</div>
+                            <button class="btn-qty" onclick="changeQty('${id}', 1)">+</button>
+                        </div>
+                        <span style="font-weight:bold; color:#cc0000; font-size:11px;">
+                            ￥${item.product.price.toLocaleString()}(${subtotal.toLocaleString()})
+                        </span>
+                    </div>
+                `;
+                cartItemsTarget.appendChild(row);
+            });
+
+            document.getElementById('total-count-badge').textContent = `${totalCount}点`;
+            document.getElementById('total-price-display').textContent = `￥${totalAmount.toLocaleString()}`;
+            sessionStorage.setItem('sim_cart_data', JSON.stringify(cartMap));
+        }
+
+        // 通知をためて表示する共通関数
+        function showNotification(message) {
+            // 1. 画面内に通知用コンテナがあるか確認。なければ作る
+            let container = document.querySelector('.toast-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.className = 'toast-container';
+                document.body.appendChild(container);
+            }
+
+            // 2. 新しい通知要素を作成
+            const toast = document.createElement('div');
+            toast.className = 'toast-notification';
+            toast.innerHTML = message;
+            
+            // コンテナに追加（末尾に追加されるので、古いものが上、新しいものが下にたまります）
+            container.appendChild(toast);
+
+            // 3. アニメーション用に一瞬遅らせて表示クラスを付与
+            setTimeout(() => {
+                toast.classList.add('show');
+            }, 10);
+
+            // 4. 3秒後にこの通知だけを個別に消去
+            setTimeout(() => {
+                toast.classList.remove('show');
+                // フェードアウトの動作（0.3秒）が終わってから要素を完全に削除
+                setTimeout(() => {
+                    toast.remove();
+                    // もしコンテナの中身が空っぽになったら、コンテナ自体も削除してキレイにする
+                    if (container.childElementCount === 0) {
+                        container.remove();
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        // この商品をカートに入れる関数（修正版）
+        window.addCurrentToCart = function() {
+            if (!currentProduct) return;
+            
+            if (cartMap[currentProduct.id]) { 
+                cartMap[currentProduct.id].quantity += 1; 
+            } else { 
+                cartMap[currentProduct.id] = { product: currentProduct, quantity: 1 }; 
+            }
+            
+            updateCartView();
+            
+            // 【追記】通知を実行
+            showNotification(`<span style="color: #ff3333; font-weight: bold;">${matched.name}</span> をカートに追加しました。`);
+        };
+
+        window.changeQty = function(id, delta) {
+            if (!cartMap[id]) return;
+            cartMap[id].quantity += delta;
+            if (cartMap[id].quantity <= 0) { delete cartMap[id]; }
+            updateCartView();
+        };
+
+        loadProductDetail();
+    </script>
+</body>
+</html>

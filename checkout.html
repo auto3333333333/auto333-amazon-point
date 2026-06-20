@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>注文確認・お支払方法選択 - 価格.comスタイル</title>
+    <link rel="stylesheet" href="style.css">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    
+    <style>
+        .checkout-box { max-width: 500px; margin: 30px auto; background: #fff; border: 1px solid #ddd; border-top: 3px solid #f60; padding: 25px; border-radius: 0 0 4px 4px; }
+        .checkout-header { font-size: 16px; font-weight: bold; color: #333; border-bottom: 2px solid #001789; padding-bottom: 8px; margin-bottom: 15px; }
+        .order-review-table { width: 100%; font-size: 12px; color: #444; border-collapse: collapse; margin-bottom: 20px; }
+        .order-review-table th { text-align: left; color: #777; font-weight: normal; padding: 6px 0; border-bottom: 1px solid #eee; }
+        .order-review-table td { padding: 8px 0; border-bottom: 1px solid #f2f2f2; }
+        
+        .payment-selector { margin-top: 15px; padding-top: 15px; border-top: 1px dashed #ddd; }
+        .payment-option { display: flex; align-items: center; background: #fdfdfd; border: 1px solid #e0e0e0; border-radius: 4px; padding: 10px; margin-top: 8px; cursor: pointer; font-size: 13px; font-weight: bold; }
+        .payment-option input { margin-right: 10px; }
+
+        .credit-card-form { background: #f4f7fa; border: 1px solid #bcd; border-radius: 4px; padding: 15px; margin-top: 10px; display: block; }
+        .form-group { margin-bottom: 12px; text-align: left; }
+        .form-group:last-child { margin-bottom: 0; }
+        .form-group label { display: block; font-size: 11px; font-weight: bold; color: #456; margin-bottom: 4px; }
+        
+        .form-input { width: 100%; padding: 8px; font-size: 14px; border: 1px solid #ccc; border-radius: 3px; box-sizing: border-box; font-family: monospace; transition: border-color 0.2s; }
+        
+        /* セキュリティコード入力用の配置枠 */
+        .cvc-input-wrapper { position: relative; display: flex; align-items: center; }
+        
+        /* Boxiconsボタン用のデザイン */
+        .cvc-toggle-btn { 
+            position: absolute; 
+            right: 8px; 
+            background: none; 
+            border: none; 
+            cursor: pointer; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0; 
+            margin: 0; 
+        }
+        .cvc-toggle-btn i {
+            font-size: 20px;
+            color: #666;
+            transition: color 0.2s;
+        }
+        .cvc-toggle-btn:hover i { color: #333; }
+
+        /* エラー時の赤ピカピカ点滅アニメーション */
+        .input-error-flash {
+            border-color: #cc0000 !important;
+            animation: flash-red 0.5s infinite alternate;
+        }
+        @keyframes flash-red {
+            0% { box-shadow: 0 0 2px rgba(204, 0, 0, 0.2); background-color: #fff; }
+            100% { box-shadow: 0 0 10px rgba(204, 0, 0, 0.6); background-color: #fff0f0; }
+        }
+
+        .error-message { color: #cc0000; font-size: 12px; font-weight: bold; margin-top: 10px; display: none; text-align: left; background: #fff0f0; border: 1px solid #ffaabb; padding: 8px; border-radius: 4px; line-height: 1.5; }
+
+        /* ボタンの標準スタイル */
+        .btn-action { display: block; width: 100%; text-align: center; padding: 10px 0; font-size: 13px; font-weight: bold; border: none; border-radius: 4px; cursor: pointer; transition: opacity 0.2s, background-color 0.2s; }
+        .btn-orange { background: #f60; color: #fff; }
+        .btn-orange:hover { background: #e05500; }
+        .btn-blue { background: #001789; color: #fff; }
+        .btn-gray { background: #aaa; color: #fff; margin-top: 10px; }
+
+        /* 【新設】ボタンが無効（disabled）の時のグレーアウトスタイル */
+        .btn-action:disabled {
+            background-color: #cccccc !important;
+            color: #888888 !important;
+            cursor: not-allowed !important; /* 🚫 マークを表示 */
+            opacity: 0.7;
+            box-shadow: none !important;
+        }
+
+        #checkout-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; display: none; align-items: center; justify-content: center; }
+        .modal-card { background: #fff; border-radius: 6px; padding: 25px; width: 380px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+    </style>
+</head>
+<body class="l-color-1">
+
+    <div class="l-wrap-regular">
+        <header class="l-h">
+            <div class="l-h_in"><div class="l-h_pageTtl">価格.com風 実在アイテム購入シミュレーター</div></div>
+        </header>
+
+        <main class="u-pTop20 u-pBtm30 u-pLeft10 u-pRight10">
+            <div class="checkout-box">
+                <div class="checkout-header">📋 注文確認（明細一覧）</div>
+
+                <table class="order-review-table">
+                    <thead>
+                        <tr><th style="width: 55%;">商品名</th><th style="width: 15%; text-align: center;">数量</th><th style="width: 30%; text-align: right;">小計</th></tr>
+                    </thead>
+                    <tbody id="checkout-review-items-target"></tbody>
+                </table>
+
+                <div class="payment-selector">
+                    <span style="font-size: 12px; font-weight: bold; color: #555;">お支払方法をお選びください:</span>
+                    
+                    <label class="payment-option">
+                        <input type="radio" name="payment_method" value="credit" checked onchange="toggleCardForm()">
+                        💳 クレジットカード決済
+                    </label>
+
+                    <div id="credit-card-form-area" class="credit-card-form">
+                        <div class="form-group">
+                            <label>カード番号 (16桁)</label>
+                            <input type="text" id="card-num" class="form-input" placeholder="0000 0000 0000 0000" maxlength="19">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group" style="flex: 1;">
+                                <label>有効期限 (MM/YY)</label>
+                                <input type="text" id="card-expiry" class="form-input" placeholder="MM/YY" maxlength="5">
+                            </div>
+                            <div class="form-group" style="flex: 1;">
+                                <label>セキュリティコード (3桁)</label>
+                                <div class="cvc-input-wrapper">
+                                    <input type="password" id="card-cvc" class="form-input" placeholder="123" maxlength="3" style="padding-right: 36px;">
+                                    <button type="button" id="btn-toggle-cvc" class="cvc-toggle-btn" title="表示/非表示を切り替え">
+                                        <i id="lock-icon-element" class="bx bxs-lock-alt"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <label class="payment-option">
+                        <input type="radio" name="payment_method" value="convenience" onchange="toggleCardForm()">
+                        🏪 コンビニ支払い
+                    </label>
+                </div>
+
+                <div id="form-error" class="error-message"></div>
+
+                <div class="u-mBtm15" style="display: flex; justify-content: space-between; font-weight: bold; font-size: 14px; border-top: 2px solid #ddd; padding-top: 12px; margin-top: 20px;">
+                    <span>ご請求金額合計:</span>
+                    <span id="checkout-total-price" style="color: #cc0000; font-size: 18px;">￥0</span>
+                </div>
+
+                <button class="btn-action btn-orange" id="btn-submit-final-order">最終注文を確定する</button>
+                <button class="btn-action btn-gray" onclick="location.href='index.html'">← 商品一覧（カート）に戻る</button>
+            </div>
+        </main>
+    </div>
+
+    <div id="checkout-modal">
+        <div class="modal-card">
+            <div style="font-size: 36px; color: #f60; margin-bottom: 8px;">✓</div>
+            <h2 class="u-fw-b u-mBtm10" style="font-size: 16px;">ご注文ありがとうございました</h2>
+            <p id="modal-order-id" style="font-weight: bold; color: #001789; font-size: 13px;">注文番号: #JAK-QTY-000000</p>
+            <p id="modal-payment-type" style="font-size: 12px; font-weight: bold; color: #444; margin-bottom: 15px;">支払方法: 未設定</p>
+            <button class="btn-action btn-blue" id="btn-modal-close" style="width: 120px; margin: 0 auto;">閉じる</button>
+        </div>
+    </div>
+
+    <script>
+        const cartMap = JSON.parse(sessionStorage.getItem('sim_cart_data') || '{}');
+        const target = document.getElementById('checkout-review-items-target');
+        const totalPriceDisplay = document.getElementById('checkout-total-price');
+        const cardFormArea = document.getElementById('credit-card-form-area');
+        const formError = document.getElementById('form-error');
+
+        const cardNumInput = document.getElementById('card-num');
+        const cardExpiryInput = document.getElementById('card-expiry');
+        const cardCvcInput = document.getElementById('card-cvc');
+        const btnToggleCvc = document.getElementById('btn-toggle-cvc');
+        const lockIconElement = document.getElementById('lock-icon-element');
+        const btnSubmitFinalOrder = document.getElementById('btn-submit-final-order');
+
+        function renderReview() {
+            target.innerHTML = '';
+            let totalAmount = 0;
+            const cartKeys = Object.keys(cartMap);
+
+            // 【変更】カートのアイテム数が0の場合、注文ボタンを無効化する
+            if (cartKeys.length === 0) {
+                target.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:20px; color:#999;">カートに商品がありません。</td></tr>';
+                btnSubmitFinalOrder.disabled = true; // ボタンを押せなくする
+                return;
+            }
+
+            // カートに商品がある場合は有効化する
+            btnSubmitFinalOrder.disabled = false;
+
+            cartKeys.forEach(id => {
+                const item = cartMap[id];
+                const subtotal = item.product.price * item.quantity;
+                totalAmount += subtotal;
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding:8px 0;">${item.product.name}</td>
+                    <td style="text-align:center; font-weight:bold; color:#f60;">${item.quantity}</td>
+                    <td style="text-align:right; font-weight:bold;">￥${subtotal.toLocaleString()}</td>
+                `;
+                target.appendChild(tr);
+            });
+            totalPriceDisplay.textContent = `￥${totalAmount.toLocaleString()}`;
+        }
+
+        window.toggleCardForm = function() {
+            const method = document.querySelector('input[name="payment_method"]:checked').value;
+            if (method === 'credit') {
+                cardFormArea.style.display = 'block';
+            } else {
+                cardFormArea.style.display = 'none';
+                clearErrors();
+            }
+        };
+
+        function clearErrors() {
+            formError.style.display = 'none';
+            cardNumInput.classList.remove('input-error-flash');
+            cardExpiryInput.classList.remove('input-error-flash');
+            cardCvcInput.classList.remove('input-error-flash');
+        }
+
+        // 鍵アイコンの切り替え
+        btnToggleCvc.addEventListener('click', () => {
+            if (cardCvcInput.type === 'password') {
+                cardCvcInput.type = 'text';
+                lockIconElement.className = 'bx bxs-lock-open-alt';
+            } else {
+                cardCvcInput.type = 'password';
+                lockIconElement.className = 'bx bxs-lock-alt';
+            }
+        });
+
+        // カード番号の自動スペース補正
+        cardNumInput.addEventListener('input', function(e) {
+            let v = e.target.value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+            let matches = v.match(/\d{4,16}/g);
+            let match = matches && matches[0] || '';
+            let parts = [];
+            for (let i=0, len=match.length; i<len; i+=4) { parts.push(match.substring(i, i+4)); }
+            if (parts.length > 0) { e.target.value = parts.join(' '); } else { e.target.value = v; }
+            if (e.target.value.length >= 19) cardNumInput.classList.remove('input-error-flash');
+        });
+
+        // 有効期限 (MM/YY) の「自動0埋め」と「/自動挿入」
+        let lastLength = 0;
+        cardExpiryInput.addEventListener('input', function(e) {
+            let v = e.target.value.replace(/[^0-9]/g, ''); 
+            let currentLength = e.target.value.length;
+
+            if (currentLength < lastLength) {
+                lastLength = currentLength;
+                return;
+            }
+
+            if (v.length === 1 && v !== '1' && v !== '0') {
+                v = '0' + v;
+            }
+
+            if (v.length >= 2) {
+                let month = v.substring(0, 2);
+                let year = v.substring(2, 4);
+                
+                if (parseInt(month, 10) > 12) { month = '12'; }
+                if (parseInt(month, 10) === 0) { month = '01'; }
+
+                e.target.value = month + '/' + year;
+            } else {
+                e.target.value = v;
+            }
+
+            lastLength = e.target.value.length;
+            if (e.target.value.length === 5) cardExpiryInput.classList.remove('input-error-flash');
+        });
+
+        cardCvcInput.addEventListener('input', function(e) {
+            e.target.value = e.target.value.replace(/[^0-9]/g, '');
+            if (e.target.value.length === 3) cardCvcInput.classList.remove('input-error-flash');
+        });
+
+        // 確定処理と未来日バリデーション
+        btnSubmitFinalOrder.addEventListener('click', () => {
+            if (Object.keys(cartMap).length === 0) return; // セーフティガード
+            clearErrors(); 
+            
+            const method = document.querySelector('input[name="payment_method"]:checked').value;
+            
+            if (method === 'credit') {
+                const num = cardNumInput.value.trim();
+                const expiry = cardExpiryInput.value.trim();
+                const cvc = cardCvcInput.value.trim();
+                
+                let errorMessages = [];
+
+                if (num.length < 19) {
+                    cardNumInput.classList.add('input-error-flash');
+                    errorMessages.push("・カード番号（16桁）を正しく入力してください。");
+                }
+                
+                if (expiry.length < 5) {
+                    cardExpiryInput.classList.add('input-error-flash');
+                    errorMessages.push("・有効期限（MM/YY）を5文字で入力してください。");
+                } else {
+                    const parts = expiry.split('/');
+                    const inputMonth = parseInt(parts[0], 10);
+                    const inputYear = parseInt("20" + parts[1], 10);
+
+                    const now = new Date();
+                    const currentYear = now.getFullYear();
+                    const currentMonth = now.getMonth() + 1;
+
+                    if (inputYear < currentYear || (inputYear === currentYear && inputMonth < currentMonth)) {
+                        cardExpiryInput.classList.add('input-error-flash');
+                        errorMessages.push("・有効な有効期限を入力してください。");
+                    }
+                }
+
+                if (cvc.length < 3) {
+                    cardCvcInput.classList.add('input-error-flash');
+                    errorMessages.push("・セキュリティコード（3桁）を入力してください。");
+                }
+
+                if (errorMessages.length > 0) {
+                    formError.innerHTML = `<strong>⚠️ 入力エラーが発生しました</strong><br>${errorMessages.join('<br>')}`;
+                    formError.style.display = 'block';
+                    return;
+                }
+            }
+
+            const paymentLabel = method === 'credit' ? "💳 クレジットカード決済" : "🏪 コンビニ支払い";
+            document.getElementById('modal-order-id').textContent = `注文番号: #JAK-QTY-${Math.floor(100000 + Math.random() * 900000)}`;
+            document.getElementById('modal-payment-type').textContent = `支払方法: ${paymentLabel}`;
+            document.getElementById('checkout-modal').style.display = 'flex';
+        });
+
+        document.getElementById('btn-modal-close').addEventListener('click', () => {
+            sessionStorage.removeItem('sim_cart_data');
+            location.href = 'index.html';
+        });
+
+        renderReview();
+    </script>
+</body>
+</html>
