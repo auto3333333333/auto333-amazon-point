@@ -66,7 +66,7 @@
         .btn-blue { background: #001789; color: #fff; }
         .btn-gray { background: #aaa; color: #fff; margin-top: 10px; }
 
-        /* 【新設】ボタンが無効（disabled）の時のグレーアウトスタイル */
+        /* ボタンが無効（disabled）の時のグレーアウトスタイル */
         .btn-action:disabled {
             background-color: #cccccc !important;
             color: #888888 !important;
@@ -107,10 +107,16 @@
 
                     <div id="credit-card-form-area" class="credit-card-form">
                         <div class="form-group">
+                            <label>カード名義人（半角英字大文字）</label>
+                            <input type="text" id="card-holder" class="form-input" placeholder="TARO YAMADA" autocomplete="cc-name">
+                        </div>
+                        
+                        <div class="form-group">
                             <label>カード番号 (16桁)</label>
                             <input type="text" id="card-num" class="form-input" placeholder="0000 0000 0000 0000" maxlength="19">
                         </div>
-                        <div class="form-row">
+                        
+                        <div class="form-row" style="display: flex; gap: 10px;">
                             <div class="form-group" style="flex: 1;">
                                 <label>有効期限 (MM/YY)</label>
                                 <input type="text" id="card-expiry" class="form-input" placeholder="MM/YY" maxlength="5">
@@ -163,6 +169,9 @@
         const cardFormArea = document.getElementById('credit-card-form-area');
         const formError = document.getElementById('form-error');
 
+        // 🛠️ 【追加】カード名義人要素の取得
+        const cardHolderInput = document.getElementById('card-holder');
+        
         const cardNumInput = document.getElementById('card-num');
         const cardExpiryInput = document.getElementById('card-expiry');
         const cardCvcInput = document.getElementById('card-cvc');
@@ -175,14 +184,12 @@
             let totalAmount = 0;
             const cartKeys = Object.keys(cartMap);
 
-            // 【変更】カートのアイテム数が0の場合、注文ボタンを無効化する
             if (cartKeys.length === 0) {
                 target.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:20px; color:#999;">カートに商品がありません。</td></tr>';
-                btnSubmitFinalOrder.disabled = true; // ボタンを押せなくする
+                btnSubmitFinalOrder.disabled = true;
                 return;
             }
 
-            // カートに商品がある場合は有効化する
             btnSubmitFinalOrder.disabled = false;
 
             cartKeys.forEach(id => {
@@ -212,6 +219,7 @@
 
         function clearErrors() {
             formError.style.display = 'none';
+            cardHolderInput.classList.remove('input-error-flash'); // 🛠️ エラー解除追加
             cardNumInput.classList.remove('input-error-flash');
             cardExpiryInput.classList.remove('input-error-flash');
             cardCvcInput.classList.remove('input-error-flash');
@@ -226,6 +234,13 @@
                 cardCvcInput.type = 'password';
                 lockIconElement.className = 'bx bxs-lock-alt';
             }
+        });
+
+        // 🛠️ 【追加】入力時に自動で大文字のローマ字に補正する挙動
+        cardHolderInput.addEventListener('input', function(e) {
+            let v = e.target.value.toUpperCase();
+            e.target.value = v.replace(/[^A-Z\s]/g, ''); // アルファベット大文字とスペース以外を除去
+            if (e.target.value.trim().length > 0) cardHolderInput.classList.remove('input-error-flash');
         });
 
         // カード番号の自動スペース補正
@@ -275,20 +290,27 @@
             if (e.target.value.length === 3) cardCvcInput.classList.remove('input-error-flash');
         });
 
-        // 確定処理と未来日バリデーション
+        // 確定処理とバリデーション
         btnSubmitFinalOrder.addEventListener('click', () => {
-            if (Object.keys(cartMap).length === 0) return; // セーフティガード
+            if (Object.keys(cartMap).length === 0) return;
             clearErrors(); 
             
             const method = document.querySelector('input[name="payment_method"]:checked').value;
             
             if (method === 'credit') {
+                const holder = cardHolderInput.value.trim(); // 🛠️ 追加
                 const num = cardNumInput.value.trim();
                 const expiry = cardExpiryInput.value.trim();
                 const cvc = cardCvcInput.value.trim();
                 
                 let errorMessages = [];
 
+                // 🛠️ 【追加】名義人の検証
+                if (holder.length === 0) {
+                    cardHolderInput.classList.add('input-error-flash');
+                    errorMessages.push("・カード名義人を入力してください。");
+                }
+                
                 if (num.length < 19) {
                     cardNumInput.classList.add('input-error-flash');
                     errorMessages.push("・カード番号（16桁）を正しく入力してください。");
