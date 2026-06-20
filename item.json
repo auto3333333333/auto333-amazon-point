@@ -5,6 +5,7 @@
     "name": "Apple iPhone 17 Pro 256GB",
     "description": "A19チップと全く新しいディスプレイ技術を搭載した、ベゼルレスな最上位モデル。",
     "price": 174800,
+    "image": "assets/image/iphone17pro.png",
     "specs": [
       "USB-C対応",
       "4K撮影対応",
@@ -19,6 +20,7 @@
     "name": "Apple iPhone 17 Pro Max 512GB",
     "description": "最大級の画面サイズとバッテリー持続時間を実現した、フラッグシップモデル。",
     "price": 199800,
+    "image": "assets/image/iphone17promax.png",
     "specs": [
       "USB-C対応",
       "4K撮影対応",
@@ -33,6 +35,7 @@
     "name": "Apple AirPods Pro (第3世代)",
     "description": "進化したノイズキャンセリングと、パーソナライズされた空間オーディオ体験。",
     "price": 39800,
+    "image": "assets/image/airpodspro3.png",
     "specs": [
       "USB-C充電",
       "ノイズキャンセリング",
@@ -46,6 +49,7 @@
     "name": "AMD Ryzen 7 9800X3D",
     "description": "3D V-Cache搭載でゲーミング性能を極限まで引き上げる最新プロセッサ。",
     "price": 69800,
+    "image": "assets/image/ryzen7-9800x3d.png",
     "specs": [
       "Socket AM5",
       "8コア/16スレッド",
@@ -59,6 +63,7 @@
     "name": "SONY BRAVIA 65インチ 4K有機EL",
     "description": "圧倒的な黒の表現力とAIによる自動映像補正機能を備えたプレミアムテレビ。",
     "price": 285000,
+    "image": "assets/image/oled-tv-65.png",
     "specs": [
       "65インチ",
       "4K有機EL",
@@ -71,6 +76,7 @@
     "name": "Dyson V15 Detect",
     "description": "レーザーで見えないホコリを可視化。微細なゴミまで逃さない高性能モデル。",
     "price": 89000,
+    "image": "assets/image/dyson-v15.png",
     "specs": [
       "レーザー検知",
       "高性能フィルター",
@@ -83,6 +89,7 @@
     "name": "Anker Prime 140W USB-C 充電器",
     "description": "最大140W出力でノートPCもスマホも同時急速充電可能な高出力モデル。",
     "price": 12990,
+    "image": "assets/image/anker-737.png",
     "specs": [
       "140W出力",
       "USB-Cポートx3",
@@ -95,6 +102,7 @@
     "name": "超高速 8K/4K HDMIケーブル 2m",
     "description": "映像の遅延ゼロを実現する高品位シールドケーブル。",
     "price": 1800,
+    "image": "assets/image/hdm-4k-cable.png",
     "specs": [
       "4K/8K対応",
       "2.0m",
@@ -107,6 +115,7 @@
     "name": "Apple MacBook Air 13インチ M3チップ (2024)",
     "description": "圧倒的な薄さと軽さに、パワフルなM3チップを組み合わせた最新MacBook Air。最大18時間駆動するバッテリーと、鮮やかなLiquid Retinaディスプレイを搭載。",
     "price": 144800,
+    "image": "assets/image/macbook_air_m3.png",
     "specs": [
       "メモリ: 8GB",
       "SSD: 256GB",
@@ -120,6 +129,7 @@
     "name": "SONY WH-1000XM5 (ブラック)",
     "description": "業界最高クラスのノイズキャンセリング性能を誇るワイヤレスヘッドホン。2つのプロセッサーと8個のマイクを制御し、圧倒的な静寂とハイレゾ高音質を実現します。",
     "price": 44500,
+    "image": "assets/image/wh_1000xm5.png",
     "specs": [
       "タイプ: 密閉ダイナミック型",
       "連続再生: 最大30時間",
@@ -133,6 +143,7 @@
     "name": "Canon EOS R6 Mark II ボディ",
     "description": "新開発の約2420万画素フルサイズCMOSセンサーを搭載したミラーレス一眼。電子シャッター時最高約40コマ/秒の高速連写と、進化したEOS iTR AF Xによる高い被写体追尾力を誇ります。",
     "price": 318000,
+    "image": "assets/image/eos_r6_mk2.png",
     "specs": [
       "画素数: 約2420万画素",
       "マウント: RFマウント",
@@ -146,6 +157,7 @@
     "name": "Apple Watch Series 9 GPSモデル 45mm",
     "description": "最新のS9 SiPチップにより画面がさらに明るくなり、画面に触れずに操作できる「ダブルタップ」ジェスチャーに対応。高度な健康センサーと衝突事故検出機能も備えています。",
     "price": 59800,
+    "image": "assets/image/apple_watch_s9.png",
     "specs": [
       "ケースサイズ: 45mm",
       "バンド: スポーツバンド",
@@ -159,6 +171,7 @@
     "name": "SONY WF-1000XM5 (プラチナシルバー)",
     "description": "世界最高ノイキャンを謳う完全ワイヤレスイヤホン。新開発の統合プロセッサーV2と高音質ノイズキャンセリングプロセッサーQN2eを搭載し、圧倒的な臨場感とクリアな通話音質を提供します。",
     "price": 31300,
+    "image": "assets/image/wf_1000xm5.png",
     "specs": [
       "形状: カナル型",
       "防水性能: IPX4相当",
@@ -172,6 +185,7 @@
     "name": "TOSHIBA REGZA 55Z870M [55インチ]",
     "description": "Mini LED液晶パネルと量子ドット技術を採用した、4Kタイムシフトマシン対応のハイエンド液晶レグザ。新開発のレグザエンジンZR Alphaが、リアルで引き締まった高画質を再現します。",
     "price": 165000,
+    "image": "assets/image/regza_55z870m.png",
     "specs": [
       "画面サイズ: 55V型",
       "チューナー: 地デジx9/BSx3",
@@ -185,6 +199,7 @@
     "name": "Dyson V12 Detect Slim Total Clean",
     "description": "レーザーが見えないホコリを可視化する、軽量かつ強力なコードレスクリーナー。液晶画面に、吸引したゴミのサイズと量をリアルタイムでグラフ表示する革新的な機能を搭載。",
     "price": 69800,
+    "image": "assets/image/dyson_v12_detect.png",
     "specs": [
       "タイプ: スティック/ハンディ",
       "集じん方式: サイクロン",
@@ -198,6 +213,7 @@
     "name": "Apple iPad Air 11インチ (M2・2024)",
     "description": "驚異的な速さのM2チップを新搭載した新型iPad Air。フロントカメラが横向きの長辺側に配置され、ビデオ通話がさらに快適に。Apple Pencil Pro（別売）にも対応しています。",
     "price": 88800,
+    "image": "assets/image/ipad_air_m2.png",
     "specs": [
       "画面: 11インチ Liquid Retina",
       "容量: 128GB",
@@ -211,6 +227,7 @@
     "name": "任天堂 Nintendo Switch(有機ELモデル)",
     "description": "色鮮やかな7.0インチ有機ELディスプレイを搭載したプレミアム仕様のSwitch。背面スタンドがワイドに広がり好みの角度で固定可能、有線LAN端子付きドックも付属します。",
     "price": 37980,
+    "image": "assets/image/nintendo_switch_oled.png",
     "specs": [
       "画面: 7.0インチ有機EL",
       "本体保存メモリー: 64GB",
