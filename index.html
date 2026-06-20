@@ -131,7 +131,7 @@
         }
 
         /* 広告 */
-        /* 広告エリア全体の枠 */
+        /* 広告エリア全体の枠（修正版） */
         .ad-banner-wrapper {
             margin-bottom: 20px;
             background: linear-gradient(90deg, #fffcf5 0%, #fff8eb 100%); /* 高級感のある薄いゴールド/ベージュ系 */
@@ -139,14 +139,24 @@
             border-radius: 6px;
             overflow: hidden;
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+
+            /* 🔥【追加】親のレイアウトに潰されないようにする設定 */
+            width: 100%;            /* 横幅をめいっぱい広げる */
+            min-height: 50px;       /* 高さが0pxに潰れるのを防ぐ最低限の高さ */
+            flex-shrink: 0;         /* 親がFlexboxだった場合に潰されるのを防ぐ */
+            box-sizing: border-box; /* 枠線や余白の計算によるバグを防ぐ */
         }
 
-        /* リンク全体の挙動 */
+        /* リンク全体の挙動（修正版） */
         .ad-banner-link {
             display: block;
             text-decoration: none;
             color: #333;
             transition: background 0.2s;
+            
+            /* 🔥【追加】中身を確実に引き伸ばす */
+            width: 100%;
+            height: 100%;
         }
 
         .ad-banner-link:hover {
