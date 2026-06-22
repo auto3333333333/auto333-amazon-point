@@ -224,18 +224,18 @@ function updateCartView() {
         const cartRow = document.createElement('div');
         cartRow.className = 'cart-row';
         cartRow.innerHTML = `
-                    <div class="cart-row-top">${item.product.name}</div>
-                    <div class="cart-row-bottom">
-                        <div class="qty-controller">
-                            <button class="btn-qty" onclick="changeQty('${id}', -1)">−</button>
-                            <input type="number" class="qty-number" value="${item.quantity}" min="1" onchange="directChangeQty('${id}', this.value)">
-                            <button class="btn-qty" onclick="changeQty('${id}', 1)">+</button>
-                        </div>
-                        <span style="font-weight:bold; color:#cc0000; font-size:11px;">
-                            ￥${item.product.price.toLocaleString()}(${subtotal.toLocaleString()})
-                        </span>
-                    </div>
-                `;
+            <div class="cart-row-top">${item.product.name}</div>
+            <div class="cart-row-bottom">
+                <div class="qty-controller">
+                    <button class="btn-qty" onclick="changeQty('${id}', -1)">−</button>
+                    <input type="number" class="qty-number" value="${item.quantity}" min="1" onchange="directChangeQty('${id}', this.value)">
+                    <button class="btn-qty" onclick="changeQty('${id}', 1)">+</button>
+                </div>
+                <span style="font-weight:bold; color:#cc0000; font-size:11px;">
+                    ￥${item.product.price.toLocaleString()}(${subtotal.toLocaleString()})
+                </span>
+            </div>
+        `;
         cartItemsTarget.appendChild(cartRow);
     });
     
