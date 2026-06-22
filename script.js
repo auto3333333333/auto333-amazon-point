@@ -224,18 +224,18 @@ function updateCartView() {
         const cartRow = document.createElement('div');
         cartRow.className = 'cart-row';
         cartRow.innerHTML = `
-            <div class="cart-row-top">${item.product.name}</div>
-            <div class="cart-row-bottom">
-                <div class="qty-controller">
-                    <button class="btn-qty" onclick="changeQty('${id}', -1)">−</button>
-                    <div class="qty-number">${item.quantity}</div>
-                    <button class="btn-qty" onclick="changeQty('${id}', 1)">+</button>
-                </div>
-                <span style="font-weight:bold; color:#cc0000; font-size:11px;">
-                    ￥${item.product.price.toLocaleString()} (${subtotal.toLocaleString()})
-                </span>
-            </div>
-        `;
+                    <div class="cart-row-top">${item.product.name}</div>
+                    <div class="cart-row-bottom">
+                        <div class="qty-controller">
+                            <button class="btn-qty" onclick="changeQty('${id}', -1)">−</button>
+                            <input type="number" class="qty-number" value="${item.quantity}" min="1" onchange="directChangeQty('${id}', this.value)">
+                            <button class="btn-qty" onclick="changeQty('${id}', 1)">+</button>
+                        </div>
+                        <span style="font-weight:bold; color:#cc0000; font-size:11px;">
+                            ￥${item.product.price.toLocaleString()}(${subtotal.toLocaleString()})
+                        </span>
+                    </div>
+                `;
         cartItemsTarget.appendChild(cartRow);
     });
     
@@ -262,6 +262,14 @@ function showNotification(message) {
     // コンテナに追加（末尾に追加されるので、古いものが上、新しいものが下にたまります）
     container.appendChild(toast);
 
+    // 🎵 【修正】assets/sounds/notify.ogg を読み込んで再生
+    try {
+        const notificationSound = new Audio('assets/sounds/notification01.mp3');
+        notificationSound.volume = 0.5; // 音量を50%に設定（お好みにあわせて0.0〜1.0で調整してください）
+        notificationSound.play();
+    } catch (e) {
+        console.log("音声を再生できませんでした:", e);
+    }
     // 3. アニメーション用に一瞬遅らせて表示クラスを付与
     setTimeout(() => {
         toast.classList.add('show');
@@ -301,9 +309,44 @@ window.addItemToCart = function(productId) {
 // カート内の数量変更
 window.changeQty = function(id, delta) {
     if (!cartMap[id]) return;
+    
+    const productName = cartMap[id].product.name; // 通知用に商品名を取得しておく
+
     cartMap[id].quantity += delta;
-    if (cartMap[id].quantity <= 0) delete cartMap[id];
+    
+    if (cartMap[id].quantity <= 0) { 
+        delete cartMap[id]; 
+        updateCartView();
+        // 💡 数量が0になってカートから削除されたときの通知
+        showNotification(`<span style="color: #ff3333; font-weight: bold;">${productName}</span> をカートから削除しました。`);
+    } else {
+        updateCartView();
+        // 💡 数量が増減したときの通知（+1 のときは「追加」、-1 のときは「減らしました」）
+        if (delta > 0) {
+            showNotification(`<span style="color: #ff3333; font-weight: bold;">${productName}</span> の数量1を増やしました。`);
+        } else {
+            showNotification(`<span style="color: #ff3333; font-weight: bold;">${productName}</span> の数量1を減らしました。`);
+        }
+    }
+};
+
+// 💡 キーボードからの直接打ち込みに対応する関数
+window.directChangeQty = function(id, val) {
+    if (!cartMap[id]) return;
+
+    let newQty = parseInt(val, 10);
+    const productName = cartMap[id].product.name;
+
+    // 入力された値が空、または1未満の不正な数値だった場合は強制的に1に戻す
+    if (isNaN(newQty) || newQty < 1) {
+        newQty = 1;
+    }
+
+    cartMap[id].quantity = newQty;
     updateCartView();
+
+    // 打ち込み完了の通知を表示
+    showNotification(`<span style="color: #ff3333; font-weight: bold;">${productName}</span> の数量を ${newQty} 個に変更しました。`);
 };
 
 // アプリの起動

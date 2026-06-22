@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <title>製品詳細</title>
-    <link rel="icon" href="assets/image/icon.jpg" type="image/jpeg">
     <link rel="stylesheet" href="style.css">
     <style>
         .detail-layout { display: flex; justify-content: space-between; align-items: flex-start; margin-top: 20px; }
@@ -36,11 +35,51 @@
         .cart-row-bottom { display: flex; justify-content: space-between; align-items: center; }
         .qty-controller { display: flex; align-items: center; background: #f5f5f5; border: 1px solid #ccc; border-radius: 3px; overflow: hidden; }
         .btn-qty { background: #fff; border: none; width: 24px; height: 22px; font-size: 14px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-        .qty-number { width: 28px; text-align: center; font-size: 12px; font-weight: bold; color: #ff6600; }
+        .qty-number { 
+            width: 32px; 
+            text-align: center; 
+            font-size: 12px; 
+            font-weight: bold; 
+            color: #ff6600; 
+            background: transparent; 
+            border: none; 
+            padding: 0;
+            margin: 0;
+            -moz-appearance: textfield; /* Firefox用の矢印消し */
+        }
+        /* Chrome, Safari用の矢印消し */
+        .qty-number::-webkit-outer-spin-button,
+        .qty-number::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        /* 入力中（フォーカス時）の青い枠線を消す */
+        .qty-number:focus {
+            outline: none;
+        }
         .btn-action { display: block; width: 100%; text-align: center; padding: 10px 0; font-size: 13px; font-weight: bold; border: none; border-radius: 4px; cursor: pointer; }
+        .btn-action:disabled {
+            background-color: #cccccc !important;
+            color: #888888 !important;
+            cursor: not-allowed !important;
+            opacity: 0.7;
+            box-shadow: none !important;
+        }
         .btn-blue { background: #001789; color: #fff; }
         .btn-orange { background: #f60; color: #fff; }
         .btn-gray { background: #aaa; color: #fff; margin-top: 15px; }
+        /* 通知を表示する全体のコンテナ（画面右上に固定） */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px; /* 通知ごとの隙間 */
+            pointer-events: none;
+        }
+
         /* 通知を表示する全体のコンテナ（画面右上に固定） */
         .toast-container {
             position: fixed;
@@ -117,7 +156,7 @@
                             <span>合計金額:</span>
                             <span id="total-price-display" style="color: #cc0000; font-size: 16px;">￥0</span>
                         </div>
-                        <button class="btn-action btn-orange" onclick="location.href='checkout.html'">注文を確定する</button>
+                        <button class="btn-action btn-orange" id="btn-submit-order" onclick="location.href='checkout.html'" disabled>注文を確定する</button>
                         <button class="btn-action btn-gray" onclick="location.href='index.html'">← 商品一覧に戻る</button>
                     </div>
                 </div>
@@ -129,7 +168,9 @@
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const productId = urlParams.get('id');
+        const btnSubmitOrder = document.getElementById('btn-submit-order');
 
+        let loadedProducts = []; 
         let currentProduct = null;
         let cartMap = JSON.parse(sessionStorage.getItem('sim_cart_data') || '{}');
 
@@ -227,8 +268,11 @@
                 cartItemsTarget.innerHTML = '<div style="color:#999; text-align:center; padding:20px 0; font-size:12px;">カートは空です。</div>';
                 document.getElementById('total-count-badge').textContent = "0点";
                 document.getElementById('total-price-display').textContent = "￥0";
+                btnSubmitOrder.disabled = true;
                 return;
             }
+            
+            btnSubmitOrder.disabled = false;
 
             keys.forEach(id => {
                 const item = cartMap[id];
@@ -243,7 +287,7 @@
                     <div class="cart-row-bottom">
                         <div class="qty-controller">
                             <button class="btn-qty" onclick="changeQty('${id}', -1)">−</button>
-                            <div class="qty-number">${item.quantity}</div>
+                            <input type="number" class="qty-number" value="${item.quantity}" min="1" onchange="directChangeQty('${id}', this.value)">
                             <button class="btn-qty" onclick="changeQty('${id}', 1)">+</button>
                         </div>
                         <span style="font-weight:bold; color:#cc0000; font-size:11px;">
@@ -260,35 +304,38 @@
         }
 
         // 通知をためて表示する共通関数
+        // 通知を表示し、同時に指定の音声ファイルを鳴らす関数
         function showNotification(message) {
-            // 1. 画面内に通知用コンテナがあるか確認。なければ作る
             let container = document.querySelector('.toast-container');
             if (!container) {
                 container = document.createElement('div');
                 container.className = 'toast-container';
                 document.body.appendChild(container);
             }
-
-            // 2. 新しい通知要素を作成
             const toast = document.createElement('div');
             toast.className = 'toast-notification';
             toast.innerHTML = message;
-            
-            // コンテナに追加（末尾に追加されるので、古いものが上、新しいものが下にたまります）
             container.appendChild(toast);
 
-            // 3. アニメーション用に一瞬遅らせて表示クラスを付与
+            // 🎵 【修正】assets/sounds/notify.ogg を読み込んで再生
+            try {
+                const notificationSound = new Audio('assets/sounds/notification01.mp3');
+                notificationSound.volume = 0.5; // 音量を50%に設定（お好みにあわせて0.0〜1.0で調整してください）
+                notificationSound.play();
+            } catch (e) {
+                console.log("音声を再生できませんでした:", e);
+            }
+
+            // 通知アニメーションの開始
             setTimeout(() => {
                 toast.classList.add('show');
             }, 10);
 
-            // 4. 3秒後にこの通知だけを個別に消去
+            // 3秒後に通知を消去
             setTimeout(() => {
                 toast.classList.remove('show');
-                // フェードアウトの動作（0.3秒）が終わってから要素を完全に削除
                 setTimeout(() => {
                     toast.remove();
-                    // もしコンテナの中身が空っぽになったら、コンテナ自体も削除してキレイにする
                     if (container.childElementCount === 0) {
                         container.remove();
                     }
@@ -308,15 +355,50 @@
             
             updateCartView();
             
-            // 【追記】通知を実行
-            showNotification(`<span style="color: #ff3333; font-weight: bold;">${matched.name}</span> をカートに追加しました。`);
+            // 💡【ここだけ通知を実行】
+            showNotification(`<span style="color: #ff3333; font-weight: bold;">${currentProduct.name}</span> をカートに追加しました。`);
         };
 
         window.changeQty = function(id, delta) {
             if (!cartMap[id]) return;
+            
+            const productName = cartMap[id].product.name; // 通知用に商品名を取得しておく
+
             cartMap[id].quantity += delta;
-            if (cartMap[id].quantity <= 0) { delete cartMap[id]; }
+            
+            if (cartMap[id].quantity <= 0) { 
+                delete cartMap[id]; 
+                updateCartView();
+                // 💡 数量が0になってカートから削除されたときの通知
+                showNotification(`<span style="color: #ff3333; font-weight: bold;">${productName}</span> をカートから削除しました。`);
+            } else {
+                updateCartView();
+                // 💡 数量が増減したときの通知（+1 のときは「追加」、-1 のときは「減らしました」）
+                if (delta > 0) {
+                    showNotification(`<span style="color: #ff3333; font-weight: bold;">${productName}</span> の数量1を増やしました。`);
+                } else {
+                    showNotification(`<span style="color: #ff3333; font-weight: bold;">${productName}</span> の数量1を減らしました。`);
+                }
+            }
+        };
+
+        // 💡 キーボードからの直接打ち込みに対応する関数
+        window.directChangeQty = function(id, val) {
+            if (!cartMap[id]) return;
+
+            let newQty = parseInt(val, 10);
+            const productName = cartMap[id].product.name;
+
+            // 入力された値が空、または1未満の不正な数値だった場合は強制的に1に戻す
+            if (isNaN(newQty) || newQty < 1) {
+                newQty = 1;
+            }
+
+            cartMap[id].quantity = newQty;
             updateCartView();
+
+            // 打ち込み完了の通知を表示
+            showNotification(`<span style="color: #ff3333; font-weight: bold;">${productName}</span> の数量を ${newQty} 個に変更しました。`);
         };
 
         loadProductDetail();
