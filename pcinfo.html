@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>究極ブラウザ・ネットワーク情報監査 (pcinfo.html)</title>
+    <link rel="stylesheet" href="pcinfo.css">
+</head>
+<body>
+
+<div class="container">
+    <h1>究極ブラウザ・ネットワーク情報監査システム</h1>
+    <p class="subtitle">JavaScript APIおよびWebRTC技術を駆使し、ブラウザが保持・通信しているすべての環境情報を一本化して出力します。</p>
+
+    <button class="btn" onclick="requestAllPermissions()">【権限要求】すべての秘匿・詳細情報を解放する</button>
+
+    <h2>1. ネットワーク環境 ＆ 検出されたIPアドレス（WebRTC）</h2>
+    <table>
+        <tr><th>接続タイプ (Cellular/Wifi等)</th><td id="net-type" class="highlight">取得中...</td></tr>
+        <tr><th>理論上の下り最大速度</th><td id="net-downlink" class="highlight">取得中...</td></tr>
+        <tr><th>応答速度 (RTT / 往復遅延時間)</th><td id="net-rtt" class="highlight">取得中...</td></tr>
+        <tr><th>データ保存モード (Save Data)</th><td id="net-savedata" class="highlight">取得中...</td></tr>
+        <tr>
+            <th>WebRTC検出IPアドレス一覧</th>
+            <td>
+                <div id="webrtc-container">
+                    <span class="status-msg" id="ip-status">IPアドレスの検出スキャンを実行中...</span>
+                    <table style="width:100%; margin-top:5px; box-shadow:none; display:none;" id="result-ip-table">
+                        <tbody id="ip-table-body"></tbody>
+                    </table>
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <h2>2. ハードウェア ＆ 計算資源</h2>
+    <table>
+        <tr><th>論理プロセッサ数 (CPUコア数)</th><td id="cpu-cores" class="highlight">取得中...</td></tr>
+        <tr><th>デバイスメモリ容量 (概算)</th><td id="device-memory" class="highlight">取得中...</td></tr>
+        <tr><th>最大タッチポイント数 (マルチタッチ対応)</th><td id="max-touch" class="highlight">取得中...</td></tr>
+        <tr><th>デバイスの向き / 傾きセンサー</th><td id="device-orientation" class="status-msg">未検出（デスクトップ環境、または静止状態）</td></tr>
+    </table>
+
+    <h2>3. グラフィックス (GPU) ＆ ディスプレイ詳細</h2>
+    <table>
+        <tr><th>画面の物理解像度 / 有効領域</th><td id="screen-size" class="highlight">取得中...</td></tr>
+        <tr><th>デバイスピクセル比 (DPI倍率)</th><td id="pixel-ratio" class="highlight">取得中...</td></tr>
+        <tr><th>色深度 / ピクセル深度</th><td id="color-depth" class="highlight">取得中...</td></tr>
+        <tr><th>モニターリフレッシュレート (実測)</th><td id="refresh-rate" class="highlight">測定中...</td></tr>
+        <tr><th>GPU ベンダー (WebGL)</th><td id="gpu-vendor" class="highlight">取得中...</td></tr>
+        <tr><th>GPU レンダラー (ビデオカード名)</th><td id="gpu-renderer" class="highlight">取得中...</td></tr>
+        <tr><th>WebGL 拡張機能サポート数</th><td id="webgl-extensions" class="highlight">取得中...</td></tr>
+        <tr><th>HDR (High Dynamic Range) 対応</th><td id="hdr-support" class="highlight">取得中...</td></tr>
+    </table>
+
+    <h2>4. オーディオ ＆ メディア入出力デバイス (要権限)</h2>
+    <table>
+        <tr><th>利用可能な音声・映像入力機器型番</th><td id="media-devices"><span class="denied">上の「権限要求」ボタンを押して許可してください</span></td></tr>
+        <tr><th>オーディオ・サンプリングレート</th><td id="audio-sr" class="highlight">取得中...</td></tr>
+        <tr><th>出力チャンネル数 (スピーカー構成)</th><td id="audio-channels" class="highlight">取得中...</td></tr>
+    </table>
+
+    <h2>5. ブラウザストレージの空き容量 ＆ 永続化状態</h2>
+    <table>
+        <tr><th>ブラウザに割り当てられた総容量</th><td id="storage-quota" class="highlight">取得中...</td></tr>
+        <tr><th>現在の使用量</th><td id="storage-usage" class="highlight">取得中...</td></tr>
+        <tr><th>永続ストレージ権限 (Persistent Storage)</th><td id="storage-persisted" class="highlight">取得中...</td></tr>
+    </table>
+
+    <h2>6. 環境固有情報（フォント・プラグイン・タイムゾーン）</h2>
+    <table>
+        <tr><th>ローカルタイムゾーン / UTCオフセット</th><td id="timezone" class="highlight">取得中...</td></tr>
+        <tr><th>検出されたシステムフォント</th><td id="fonts-list" class="highlight">検証中...</td></tr>
+        <tr><th>ブラウザ登録プラグイン一覧</th><td><pre id="plugins-list">取得中...</pre></td></tr>
+    </table>
+
+    <h2>7. ブラウザ・セキュリティ ＆ プライバシー設定</h2>
+    <table>
+        <tr><th>User Agent (全文字)</th><td><pre id="ua-full"></pre></td></tr>
+        <tr><th>User Agent Client Hints (近代ブラウザ詳細)</th><td><pre id="ua-hints">取得中...</pre></td></tr>
+        <tr><th>Do Not Track (追跡拒否設定)</th><td id="dnt" class="highlight">取得中...</td></tr>
+        <tr><th>自動再生ポリシー (Autoplay)</th><td id="autoplay" class="highlight">取得中...</td></tr>
+        <tr><th>Cookie有効化状態</th><td id="cookie-status" class="highlight">取得中...</td></tr>
+    </table>
+
+    <h2>8. 位置情報 (高度・移動速度・方向 ＆ 現在地マップ - 要権限)</h2>
+    <div id="geo-wrapper" class="geo-layout">
+        <div id="geo-advanced" class="geo-info class="status-msg"">
+            上の「権限要求」ボタンを押すと、ここに詳細なGPS・移動データが展開されます。
+        </div>
+        <div id="geo-map" class="geo-map-container" style="display: none;">
+            </div>
+    </div>
+</div>
+
+<script src="pcinfo.js"></script>
+
+</body>
+</html>
